@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ኆኅተ ጥበብ ህፃናት ክፍል — School Management</title>
+<style>
+:root {
+  --primary:#1a4fa0;--primary-dark:#0f3070;--primary-light:#e8f0fb;
+  --accent:#c8922a;--accent-light:#fdf3e0;
+  --success:#1e7e34;--success-light:#e6f5ea;
+  --danger:#c0392b;--danger-light:#fdecea;
+  --warning:#d68910;--warning-light:#fef9e7;
+  --bg:#f4f6fb;--card:#ffffff;--border:#dde3ef;
+  --text:#1a2340;--muted:#6b7a99;--sidebar-w:230px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ===== AUTH ===== */
+#authScreen{position:fixed;inset:0;background:linear-gradient(160deg,#0a1e3d 0%,#1a4fa0 40%,#0f3070 70%,#c8922a 100%);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;}#authScreen > .auth-card{position:relative;z-index:1;}
+.auth-card{background:rgba(255,255,255,0.12);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1.5px solid rgba(255,255,255,0.25);border-radius:20px;padding:32px 28px;width:100%;max-width:390px;box-shadow:0 8px 40px rgba(0,0,0,0.4);}
+.auth-logo{text-align:center;margin-bottom:22px;}
+.auth-logo .logo-icon{font-size:48px;display:block;}
+.auth-logo .logo-name{font-size:20px;font-weight:700;color:#fff;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,0.4);}
+.auth-logo .logo-sub{font-size:12px;color:rgba(255,255,255,0.75);}
+.auth-tabs{display:flex;border-bottom:1.5px solid rgba(255,255,255,0.2);margin-bottom:20px;}
+.auth-tab{flex:1;text-align:center;padding:9px;font-size:13.5px;font-weight:600;cursor:pointer;color:rgba(255,255,255,0.6);border-bottom:2.5px solid transparent;margin-bottom:-1.5px;}
+.auth-tab.active{color:#fff;border-bottom-color:var(--accent);}
+.auth-form{display:none;}
+.auth-form.active{display:block;}
+.auth-group{margin-bottom:14px;}
+.auth-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;letter-spacing:0.4px;display:block;margin-bottom:5px;}
+.auth-input{width:100%;border:1.5px solid rgba(255,255,255,0.3);border-radius:8px;padding:10px 13px;font-size:14px;outline:none;transition:border 0.15s;background:rgba(255,255,255,0.9);color:#1a2340;}
+.auth-input:focus{border-color:var(--accent);outline:none;}
+.auth-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:background 0.15s;}
+.auth-btn:hover{background:var(--primary-dark);}
+.auth-error{background:var(--danger-light);color:var(--danger);border-radius:7px;padding:9px 12px;font-size:13px;margin-bottom:12px;display:none;}
+.role-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.role-admin{background:#e8f0fb;color:var(--primary);}
+.role-teacher{background:var(--success-light);color:var(--success);}
+.role-controller{background:var(--accent-light);color:var(--accent);}
+.role-superadmin{background:#2d1b6e;color:#c9b8ff;}
+
+/* ===== LAYOUT ===== */
+#appScreen{display:none;}
+#appScreen.show{display:flex;min-height:100vh;}
+.sidebar{width:var(--sidebar-w);background:var(--primary-dark);color:#fff;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;transition:transform 0.3s;overflow-y:auto;}
+.sidebar-header{padding:16px 14px 12px;border-bottom:1px solid rgba(255,255,255,0.12);}
+.sidebar-logo{font-size:13px;font-weight:700;color:var(--accent);}
+.sidebar-subtitle{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px;}
+.sidebar-user{margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.08);border-radius:8px;display:flex;align-items:center;gap:8px;}
+.sidebar-user .uname{font-size:12px;font-weight:600;}
+.sidebar-user .urole{font-size:10px;color:rgba(255,255,255,0.5);}
+.sidebar-nav{flex:1;padding:10px 0;}
+.nav-section{font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:0.8px;padding:12px 16px 4px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.72);transition:all 0.15s;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(255,255,255,0.08);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,0.13);color:#fff;border-left-color:var(--accent);}
+.nav-item.hidden-item{display:none;}
+.nav-icon{font-size:17px;width:20px;text-align:center;}
+.sidebar-footer{padding:12px 14px;border-top:1px solid rgba(255,255,255,0.1);}
+.logout-btn{width:100%;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:none;border-radius:7px;padding:8px;font-size:12px;cursor:pointer;transition:all 0.15s;}
+.logout-btn:hover{background:var(--danger);color:#fff;}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text);}
+.menu-btn{display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text);margin-right:10px;}
+.content{padding:18px;flex:1;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ===== COMPONENTS ===== */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;}
+.card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.stat-num{font-size:26px;font-weight:700;color:var(--primary);line-height:1;}
+.stat-label{font-size:11px;color:var(--muted);margin-top:3px;}
+.stat-card.green .stat-num{color:var(--success);}
+.stat-card.amber .stat-num{color:var(--accent);}
+.stat-card.red .stat-num{color:var(--danger);}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-group.full{grid-column:1/-1;}
+label.lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;}
+input[type=text],input[type=date],input[type=tel],input[type=number],input[type=email],input[type=password],select,textarea{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:13.5px;color:var(--text);background:#fff;outline:none;transition:border 0.15s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);}
+textarea{resize:vertical;min-height:65px;}
+.section-title{font-size:12px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:0.5px;grid-column:1/-1;margin-top:8px;padding-bottom:5px;border-bottom:1.5px solid var(--primary-light);}
+.btn{padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-accent{background:var(--accent);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-outline{background:transparent;color:var(--primary);border:1.5px solid var(--primary);}
+.btn-outline:hover{background:var(--primary-light);}
+.btn-sm{padding:4px 10px;font-size:11.5px;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:var(--bg);font-weight:700;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;padding:9px 11px;text-align:left;border-bottom:1.5px solid var(--border);}
+td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg);}
+.chip{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.chip.present{background:var(--success-light);color:var(--success);}
+.chip.absent{background:var(--danger-light);color:var(--danger);}
+.chip.late{background:var(--warning-light);color:var(--warning);}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-light);color:var(--primary);font-weight:700;font-size:12px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.search-row{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
+.search-input{padding:8px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;outline:none;flex:1;min-width:160px;}
+.search-input:focus{border-color:var(--primary);}
+
+/* Attendance */
+.fp-area{border:2px dashed var(--border);border-radius:12px;padding:24px 18px;text-align:center;background:var(--bg);}
+.fp-icon{font-size:56px;display:block;margin-bottom:10px;}
+.fp-scanning{animation:pulse 0.8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.fp-result{margin-top:14px;padding:12px 16px;border-radius:9px;font-weight:600;font-size:13.5px;display:none;}
+.fp-result.show{display:block;}
+.fp-result.ok{background:var(--success-light);color:var(--success);}
+.fp-result.fail{background:var(--danger-light);color:var(--danger);}
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:12px;}
+.att-student{border:1.5px solid var(--border);border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;transition:all 0.15s;background:#fff;}
+.att-student:hover{border-color:var(--primary);}
+.att-student.checked{border-color:var(--success);background:var(--success-light);}
+.att-student.absent-marked{border-color:var(--danger);background:var(--danger-light);}
+.att-student .sname{font-size:10px;font-weight:700;margin-top:5px;color:var(--text);}
+.att-student .sgrade{font-size:9px;color:var(--muted);}
+
+/* Photo */
+.photo-box{width:100px;height:100px;border-radius:9px;border:2px dashed var(--border);overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.photo-box img{width:100%;height:100%;object-fit:cover;}
+.photo-placeholder{color:var(--muted);font-size:10px;text-align:center;padding:8px;}
+#cameraModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9998;align-items:center;justify-content:center;}
+#cameraModal.open{display:flex;}
+.camera-card{background:#fff;border-radius:14px;padding:18px;width:320px;max-width:95vw;}
+#videoEl{width:100%;border-radius:8px;background:#000;}
+#canvasEl{display:none;}
+
+/* Scores */
+.score-table input[type=number]{width:60px;text-align:center;padding:5px;font-size:12px;}
+.grade-chip{display:inline-block;width:28px;text-align:center;padding:2px 3px;border-radius:5px;font-weight:700;font-size:11px;}
+.grade-A{background:#e6f5ea;color:#1e7e34;}
+.grade-B{background:#e8f0fb;color:#1a4fa0;}
+.grade-C{background:#fef9e7;color:#d68910;}
+.grade-D{background:#fff3e0;color:#bf6e00;}
+.grade-F{background:#fdecea;color:#c0392b;}
+
+/* Plans */
+.plan-item{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:7px;}
+.date-badge{background:var(--primary-light);color:var(--primary);border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;white-space:nowrap;min-width:58px;text-align:center;}
+.plan-category{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;}
+.cat-academic{background:var(--primary-light);color:var(--primary);}
+.cat-exam{background:var(--danger-light);color:var(--danger);}
+.cat-event{background:var(--accent-light);color:var(--accent);}
+.cat-holiday{background:var(--success-light);color:var(--success);}
+
+/* Users page */
+.user-card{background:#fff;border:1px solid var(--border);border-radius:9px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.user-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:500;z-index:99999;display:none;max-width:300px;}
+#toast.show{display:block;animation:slideup 0.2s;}
+@keyframes slideup{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+@media(max-width:680px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:none;}
+  .main{margin-left:0;}
+  .menu-btn{display:flex!important;}
+  .content{padding:12px;}
+  .form-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-icon">✦</span>
+      <div class="logo-name">ኆኅተ ጥበብ ህፃናት ክፍል</div>
+      <div class="logo-sub">School Management System</div>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchAuthTab('login')">Login / ግባ</div>
+      <div class="auth-tab" onclick="switchAuthTab('register')">Register / ተመዝገብ</div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="auth-form active" id="loginForm">
+      <div class="auth-error" id="loginError"></div>
+      <div class="auth-group">
+        <label class="auth-label">Username / የተጠቃሚ ስም</label>
+        <input class="auth-input" type="text" id="loginUser" placeholder="Enter username">
+      </div>
+      <div class="auth-group">
+        <label class="auth-label">Password / የይለፍ ቃል</label>
+        <input class="auth-input" type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="auth-btn" onclick="doLogin()">🔐 Login</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="auth-form" id="registerForm">
+      <div class="auth-error" id="regError"></div>
+      <div class="auth-group">
+        <label class="auth-label">Full Name / ሙሉ ስም</label>
+        <input class="auth-input" type="text" id="regName" placeholder="Your full name">
+      </div>
+      <div class="auth-group">
+        <label class="auth-label">Username / የተጠቃሚ ስም</label>
+        <input class="auth-input" type="text" id="regUser" placeholder="Choose a username">
+      </div>
+      <div class="auth-group">
+        <label class="auth-label">Password / የይለፍ ቃል</label>
+        <input class="auth-input" type="password" id="regPass" placeholder="Choose a password">
+      </div>
+      <div class="auth-group">
+        <label class="auth-label">Role / ሚና</label>
+        <select class="auth-input" id="regRole">
+          <option value="teacher">Teacher / መምህር</option>
+          <option value="controller">Class Controller / ክፍል ተቆጣጣሪ</option>
+          <option value="admin">Admin / አስተዳዳሪ (requires admin code)</option>
+          <option value="superadmin">Super Admin / ዋና አስተዳዳሪ (requires admin code)</option>
+        </select>
+      </div>
+      <div class="auth-group" id="adminCodeGroup" style="display:none;">
+        <label class="auth-label">Admin Code / የአስተዳዳሪ ኮድ</label>
+        <input class="auth-input" type="password" id="adminCode" placeholder="Enter admin code">
+      </div>
+      <div class="auth-group">
+        <label class="auth-label">Assigned Grade (optional)</label>
+        <select class="auth-input" id="regGrade">
+          <option value="">All Grades</option>
+          <option>ቅድመ መደበኛ 1</option><option>ቅድመ መደበኛ 2</option>
+          <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+          <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+          <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+          <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+        </select>
+      </div>
+      <button class="auth-btn" onclick="doRegister()">✅ Register Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP SCREEN ===== -->
+<div id="appScreen">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">✦ ኆኅተ ጥበብ ህፃናት ክፍል</div>
+    <div class="sidebar-subtitle">School Management System</div>
+    <div class="sidebar-user" id="sidebarUser">
+      <span style="font-size:22px;">👤</span>
+      <div><div class="uname" id="sidebarName">—</div><div class="urole" id="sidebarRole">—</div></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span> Dashboard</div>
+    <div class="nav-item" onclick="navigate('attendance')"><span class="nav-icon">☝️</span> Attendance / ክትትል</div>
+    <div class="nav-item" onclick="navigate('students')"><span class="nav-icon">👥</span> Students / ተማሪዎች</div>
+    <div class="nav-item" onclick="navigate('register')"><span class="nav-icon">📝</span> Register Student</div>
+    <div class="nav-item" onclick="navigate('scores')"><span class="nav-icon">📊</span> Scores / ውጤቶች</div>
+    <div class="nav-item" onclick="navigate('plans')"><span class="nav-icon">📅</span> School Plan</div>
+    <div class="nav-section">Reports / ሪፖርቶች</div>
+    <div class="nav-item" onclick="navigate('reports')"><span class="nav-icon">📄</span> Reports & Export</div>
+    <div class="nav-item" onclick="navigate('sms')"><span class="nav-icon">📲</span> SMS / Notifications</div>
+    <div class="nav-section nav-admin-only">Admin</div>
+    <div class="nav-item nav-admin-only" onclick="navigate('users')"><span class="nav-icon">🔑</span> Users / ተጠቃሚዎች</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button class="logout-btn" style="flex:1;background:rgba(200,146,42,0.25);color:#f5c96a;" onclick="backupData()" title="Save all data to file">💾 Backup</button>
+      <label class="logout-btn" style="flex:1;background:rgba(30,126,52,0.25);color:#7de89a;text-align:center;cursor:pointer;" title="Restore data from backup file">
+        📂 Restore<input type="file" accept=".json" onchange="restoreData(this)" style="display:none;">
+      </label>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">🚪 Logout / ውጣ</button>
+  </div>
+</aside>
+
+<main class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div>
+        <div class="topbar-title" id="pageTitle">Dashboard</div>
+      </div>
+    </div>
+    <div id="topbarRole" style="font-size:12px;color:var(--muted);"></div>
+  </header>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total Students</div></div>
+        <div class="stat-card green"><div class="stat-num" id="statPresent">0</div><div class="stat-label">Present Today</div></div>
+        <div class="stat-card red"><div class="stat-num" id="statAbsent">0</div><div class="stat-label">Absent Today</div></div>
+        <div class="stat-card amber"><div class="stat-num" id="statUsers">0</div><div class="stat-label">Controllers</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="card"><div class="card-title">📋 Recent Students</div><div id="recentList" style="font-size:13px;color:var(--muted);">No students yet.</div></div>
+        <div class="card"><div class="card-title">📅 Upcoming Plans</div><div id="upcomingPlans" style="font-size:13px;color:var(--muted);">No plans yet.</div></div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div class="page" id="page-attendance">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
+        <div class="card">
+          <div class="card-title">☝️ Fingerprint Attendance</div>
+          <div class="fp-area">
+            <span class="fp-icon" id="fpIcon">☝️</span>
+            <div style="font-size:15px;font-weight:700;" id="fpTitle">Touch to Attend</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">ተማሪ ጣቱን ይንካ</div>
+            <button class="btn btn-primary" style="margin-top:14px;" onclick="simulateScan()">📱 Simulate Scan</button>
+          </div>
+          <div class="fp-result" id="fpResult"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Today's Class</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <select id="attGradeFilter" onchange="renderAttGrid()" style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:12.5px;">
+              <option value="">All Grades</option>
+              <option>ቅድመ መደበኛ 1</option><option>ቅድመ መደበኛ 2</option>
+              <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+              <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+              <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+              <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="markAllPresent()">✅ All Present</button>
+          </div>
+          <div class="att-grid" id="attGrid"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title">📋 Attendance Log</div>
+        <div class="table-wrap"><table><thead><tr><th>Student</th><th>Grade</th><th>Time</th><th>Status</th><th>Action</th></tr></thead><tbody id="attTbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div class="page" id="page-students">
+      <div class="search-row">
+        <input class="search-input" id="studentSearch" placeholder="Search / ፈልግ..." oninput="renderStudentTable()">
+        <select id="gradeFilter" onchange="renderStudentTable()" style="padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:12.5px;">
+          <option value="">All Grades</option>
+          <option>ቅድመ መደበኛ 1</option><option>ቅድመ መደበኛ 2</option>
+          <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+          <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+          <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+          <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="navigate('register')">+ Add Student</button>
+        <button class="btn btn-danger btn-sm" id="clearStudentsBtn" style="display:none;" onclick="confirmClearAll()">🗑 Clear All Students</button>
+      </div>
+      <div id="clearConfirmBox2" style="display:none;margin-bottom:14px;padding:14px 16px;background:#fdecea;border:1.5px solid var(--danger);border-radius:9px;">
+        <div style="font-size:13.5px;font-weight:700;color:var(--danger);margin-bottom:8px;">⚠️ This will permanently delete ALL students, attendance & scores. Type <strong>DELETE</strong> to confirm:</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" id="deleteConfirmInput" placeholder="Type DELETE here" style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--danger);border-radius:7px;font-size:14px;outline:none;">
+          <button class="btn btn-danger" onclick="executeClearAll()">✅ Confirm Delete</button>
+          <button class="btn btn-outline" onclick="cancelClear()">Cancel</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table><thead><tr><th>Photo</th><th>ID</th><th>Full Name / ስም</th><th>Grade</th><th>Gender</th><th>Guardian</th><th>Phone</th><th>FP</th><th>Actions</th></tr></thead>
+          <tbody id="studentTbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- CONTROLLERS SECTION -->
+      <div class="card" style="margin-top:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+          <div class="card-title" style="margin-bottom:0;">👤 Controllers & Admins / ተቆጣጣሪዎች</div>
+          <select id="controllerRoleFilter" onchange="renderControllerTable()" style="padding:7px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:12.5px;">
+            <option value="">All Roles</option>
+            <option value="superadmin">Super Admin</option>
+            <option value="admin">Admin</option>
+            <option value="controller">Controller</option>
+            <option value="teacher">Teacher</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Avatar</th><th>Full Name</th><th>Username</th><th>Password 🔐</th><th>Role</th><th>Grade</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="controllerTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="page" id="page-register">
+      <div class="card">
+        <div class="card-title" style="font-size:15px;">📝 Register New Student / ተማሪ ምዝገባ</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">ደብረ ናዝሬት ቅዱስ ዮሴፍ እና ቅዱስ ሚካኤል ቤተ ክርስቲያን — ኆኅተ ጥበብ ህፃናት ክፍል ሰንበት ትምህርት ቤት</div>
+
+        <div style="display:flex;gap:16px;margin-bottom:18px;flex-wrap:wrap;align-items:flex-start;">
+          <div>
+            <label class="lbl">Student Photo / የተማሪ ፎቶ</label>
+            <div style="margin-top:5px;">
+              <div class="photo-box" id="studentPhotoBox" onclick="openCamera('student')"><div class="photo-placeholder">📷<br>ፎቶ</div></div>
+              <input type="file" accept="image/*" id="studentPhotoFile" style="display:none" onchange="handleFilePhoto('student',this)">
+              <div style="display:flex;gap:5px;margin-top:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openCamera('student')">📷</button>
+                <button class="btn btn-outline btn-sm" onclick="document.getElementById('studentPhotoFile').click()">📂</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="lbl">Parent Photo / የወላጅ ፎቶ</label>
+            <div style="margin-top:5px;">
+              <div class="photo-box" id="parentPhotoBox" onclick="openCamera('parent')"><div class="photo-placeholder">📷<br>ፎቶ</div></div>
+              <input type="file" accept="image/*" id="parentPhotoFile" style="display:none" onchange="handleFilePhoto('parent',this)">
+              <div style="display:flex;gap:5px;margin-top:5px;">
+                <button class="btn btn-outline btn-sm" onclick="openCamera('parent')">📷</button>
+                <button class="btn btn-outline btn-sm" onclick="document.getElementById('parentPhotoFile').click()">📂</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="section-title">የተማሪ ጠቅላላ መረጃ — Student General Info</div>
+          <div class="form-group"><label class="lbl">ID / መለያ</label><input type="text" id="reg_id" placeholder="Auto"></div>
+          <div class="form-group"><label class="lbl">የልጅ ስም / First Name</label><input type="text" id="reg_fname"></div>
+          <div class="form-group"><label class="lbl">የአባት ስም / Father</label><input type="text" id="reg_sname"></div>
+          <div class="form-group"><label class="lbl">የአያት ስም / Grandfather</label><input type="text" id="reg_gname"></div>
+          <div class="form-group"><label class="lbl">የክርስትና ስም / Baptism</label><input type="text" id="reg_bname"></div>
+          <div class="form-group"><label class="lbl">ጾታ / Gender</label>
+            <select id="reg_gender"><option value="">Select</option><option>ወንድ / Male</option><option>ሴት / Female</option></select></div>
+          <div class="form-group"><label class="lbl">ቀን / Birth Date</label><input type="date" id="reg_dob"></div>
+          <div class="form-group"><label class="lbl">ዜግነት / Nationality</label><input type="text" id="reg_national" value="Ethiopian / ኢትዮጵያዊ"></div>
+          <div class="form-group"><label class="lbl">ክፍል / Grade</label>
+            <select id="reg_grade">
+              <option value="">Select Grade</option>
+              <option>ቅድመ መደበኛ 1</option><option>ቅድመ መደበኛ 2</option>
+              <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+              <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+              <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+              <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+            </select></div>
+
+          <div class="section-title">የትውልድ ቦታ — Birthplace</div>
+          <div class="form-group"><label class="lbl">ከተማ / City</label><input type="text" id="reg_birth_city"></div>
+          <div class="form-group"><label class="lbl">ክ/ከተማ / Sub-city</label><input type="text" id="reg_birth_subcity"></div>
+          <div class="form-group"><label class="lbl">ወረዳ / Wereda</label><input type="text" id="reg_birth_wereda"></div>
+
+          <div class="section-title">የተማሪ አድራሻ — Student Address</div>
+          <div class="form-group"><label class="lbl">ከተማ / City</label><input type="text" id="reg_addr_city" value="Addis Ababa"></div>
+          <div class="form-group"><label class="lbl">ክ/ከተማ / Sub-city</label><input type="text" id="reg_addr_subcity"></div>
+          <div class="form-group"><label class="lbl">ወረዳ / Wereda</label><input type="text" id="reg_addr_wereda"></div>
+          <div class="form-group"><label class="lbl">ሰፈር / Area</label><input type="text" id="reg_area"></div>
+          <div class="form-group"><label class="lbl">የቤት ቁጥር / House No.</label><input type="text" id="reg_house"></div>
+          <div class="form-group"><label class="lbl">ስልክ / Phone</label><input type="tel" id="reg_phone"></div>
+
+          <div class="section-title">አሳዳጊ ፩ — Guardian 1</div>
+          <div class="form-group"><label class="lbl">ስም</label><input type="text" id="reg_g1_fname"></div>
+          <div class="form-group"><label class="lbl">የአባት ስም</label><input type="text" id="reg_g1_sname"></div>
+          <div class="form-group"><label class="lbl">የአያት ስም</label><input type="text" id="reg_g1_gname"></div>
+          <div class="form-group"><label class="lbl">የክርስትና ስም</label><input type="text" id="reg_g1_bname"></div>
+          <div class="form-group"><label class="lbl">ዝምድና / Relationship</label>
+            <select id="reg_g1_rel"><option>አባት/Father</option><option>እናት/Mother</option><option>አያት/Grandparent</option><option>ዘመድ/Relative</option><option>ሌላ/Other</option></select></div>
+          <div class="form-group"><label class="lbl">ስልክ / Phone</label><input type="tel" id="reg_g1_phone"></div>
+
+          <div class="section-title">አሳዳጊ ፪ — Guardian 2</div>
+          <div class="form-group"><label class="lbl">ስም</label><input type="text" id="reg_g2_fname"></div>
+          <div class="form-group"><label class="lbl">የአባት ስም</label><input type="text" id="reg_g2_sname"></div>
+          <div class="form-group"><label class="lbl">ዝምድና</label>
+            <select id="reg_g2_rel"><option>አባት/Father</option><option>እናት/Mother</option><option>አያት/Grandparent</option><option>ዘመድ/Relative</option><option>ሌላ/Other</option></select></div>
+          <div class="form-group"><label class="lbl">ስልክ</label><input type="tel" id="reg_g2_phone"></div>
+
+          <div class="section-title">ቀሪ መረጃ — Additional Info</div>
+          <div class="form-group"><label class="lbl">ወደ ሰ/ት/ቤት የመጣበት</label><input type="text" id="reg_how"></div>
+          <div class="form-group"><label class="lbl">ልዩ ክትትል</label><input type="text" id="reg_special"></div>
+          <div class="form-group full"><label class="lbl">የተማሪ ችሎታ</label><textarea id="reg_ability"></textarea></div>
+          <div class="form-group full"><label class="lbl">ማስታወሻ / Notes</label><textarea id="reg_notes"></textarea></div>
+
+          <div class="section-title">🔐 Fingerprint / የጣት አሻራ</div>
+          <div class="form-group full">
+            <div style="background:var(--primary-light);border-radius:9px;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <span style="font-size:32px;">☝️</span>
+              <div style="flex:1;"><div style="font-weight:700;font-size:13px;">Register Fingerprint</div><div style="font-size:11px;color:var(--muted);">Student places finger 3 times on phone button</div></div>
+              <button class="btn btn-primary btn-sm" onclick="simulateFPRegister()" id="fpRegBtn">📱 Register</button>
+            </div>
+            <div id="fpRegStatus" style="display:none;margin-top:7px;padding:9px 12px;border-radius:7px;font-size:12.5px;"></div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveStudent()">💾 Save Student / ተማሪ ይመዝግቡ</button>
+          <button class="btn btn-outline" onclick="clearForm()">🗑 Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCORES -->
+    <div class="page" id="page-scores">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+        <select id="scoreGrade" onchange="renderScoreTable()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;">
+          <option value="">Select Grade / ክፍል</option>
+          <option>ቅድመ መደበኛ 1</option><option>ቅድመ መደበኛ 2</option>
+          <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+          <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+          <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+          <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+        </select>
+        <select id="scoreSemester" onchange="renderScoreTable()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;">
+          <option>Semester 1</option><option>Semester 2</option>
+        </select>
+        <button class="btn btn-success btn-sm" onclick="saveScores()">💾 Save Scores</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Score Register / ውጤት ምዝገባ</div>
+        <div id="scoreContent" style="color:var(--muted);font-size:13px;">Select a grade above.</div>
+      </div>
+    </div>
+
+    <!-- PLANS -->
+    <div class="page" id="page-plans">
+      <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start;">
+        <div class="card">
+          <div class="card-title">📅 School Plan / የትምህርት ቤት እቅድ</div>
+          <div id="plansList"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">➕ Add Plan</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="form-group"><label class="lbl">Title / ርዕስ</label><input type="text" id="plan_title" placeholder="e.g. Exam week"></div>
+            <div class="form-group"><label class="lbl">Date / ቀን</label><input type="date" id="plan_date"></div>
+            <div class="form-group"><label class="lbl">Category</label>
+              <select id="plan_cat"><option value="academic">Academic</option><option value="exam">Exam / ፈተና</option><option value="event">Event / ዝግጅት</option><option value="holiday">Holiday / ዕረፍት</option></select></div>
+            <div class="form-group"><label class="lbl">Grade</label>
+              <select id="plan_grade"><option value="All">All Grades</option>
+                <option>ቅድመ መደበኛ 1</option><option>ቅድመ መደበኛ 2</option>
+                <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+                <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+                <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+                <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option></select></div>
+            <div class="form-group"><label class="lbl">Description</label><textarea id="plan_desc" rows="2"></textarea></div>
+            <button class="btn btn-primary" style="width:100%;" onclick="addPlan()">Add / ጨምር</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS PAGE -->
+    <div class="page" id="page-reports">
+
+      <!-- Tab bar -->
+      <div class="tabs" style="flex-wrap:wrap;">
+        <div class="tab active" onclick="switchReportTab('idcard')" id="rtab-idcard">🪪 ID Cards</div>
+        <div class="tab" onclick="switchReportTab('reportcard')" id="rtab-reportcard">📊 Report Card</div>
+        <div class="tab" onclick="switchReportTab('absent')" id="rtab-absent">🔔 Absent List</div>
+        <div class="tab" onclick="switchReportTab('export')" id="rtab-export">📤 Export</div>
+      </div>
+
+      <!-- ID CARD TAB -->
+      <div id="rpanel-idcard">
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-title">🪪 Student ID Card / የተማሪ መታወቂያ</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+            <select id="idcard_grade" onchange="renderIDCardList()" style="padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;">
+              <option value="">All Grades</option>
+              <option>ቅድመ መደበኛ 1</option><option>ቅድመ መደበኛ 2</option>
+              <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+              <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+              <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+              <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="printIDCards()">🖨 Print All ID Cards</button>
+          </div>
+          <div id="idCardPreview" style="display:flex;flex-wrap:wrap;gap:14px;"></div>
+        </div>
+      </div>
+
+      <!-- REPORT CARD TAB -->
+      <div id="rpanel-reportcard" style="display:none;">
+        <div class="card">
+          <div class="card-title">📊 Report Card / ሪፖርት ካርድ</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+            <select id="rc_grade" onchange="renderReportCardList()" style="padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;">
+              <option value="">Select Grade</option>
+              <option>ቅድመ መደበኛ 1</option><option>ቅድመ መደበኛ 2</option>
+              <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+              <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+              <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+              <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+            </select>
+            <select id="rc_semester" style="padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;">
+              <option>Semester 1</option><option>Semester 2</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="printReportCards()">🖨 Print Report Cards</button>
+          </div>
+          <div id="reportCardPreview"></div>
+        </div>
+      </div>
+
+      <!-- ABSENT LIST TAB -->
+      <div id="rpanel-absent" style="display:none;">
+        <div class="card">
+          <div class="card-title">🔔 Daily Absent Report / ዕለታዊ አለመቅረብ ሪፖርት</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+            <input type="date" id="absent_date" style="padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;">
+            <button class="btn btn-primary btn-sm" onclick="renderAbsentList()">🔍 Show Absent</button>
+            <button class="btn btn-outline btn-sm" onclick="printAbsentList()">🖨 Print</button>
+          </div>
+          <div id="absentListContent"></div>
+        </div>
+      </div>
+
+      <!-- EXPORT TAB -->
+      <div id="rpanel-export" style="display:none;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
+          <div class="card" style="text-align:center;padding:24px 16px;">
+            <div style="font-size:40px;margin-bottom:10px;">👥</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Student List</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Export all students as CSV spreadsheet</div>
+            <button class="btn btn-primary" style="width:100%" onclick="exportStudentsCSV()">📥 Download CSV</button>
+          </div>
+          <div class="card" style="text-align:center;padding:24px 16px;">
+            <div style="font-size:40px;margin-bottom:10px;">☝️</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Attendance Report</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Export today's attendance as CSV</div>
+            <button class="btn btn-primary" style="width:100%" onclick="exportAttendanceCSV()">📥 Download CSV</button>
+          </div>
+          <div class="card" style="text-align:center;padding:24px 16px;">
+            <div style="font-size:40px;margin-bottom:10px;">📊</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Scores Export</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Export all grades & scores as CSV</div>
+            <button class="btn btn-primary" style="width:100%" onclick="exportScoresCSV()">📥 Download CSV</button>
+          </div>
+          <div class="card" style="text-align:center;padding:24px 16px;">
+            <div style="font-size:40px;margin-bottom:10px;">📄</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Install as App</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Add to phone home screen like an app</div>
+            <button class="btn btn-accent" style="width:100%" onclick="showInstallGuide()">📱 How to Install</button>
+          </div>
+        </div>
+        <div id="installGuide" style="display:none;margin-top:14px;" class="card">
+          <div class="card-title">📱 Install on Android Phone</div>
+          <ol style="font-size:13.5px;line-height:2;padding-left:20px;color:var(--text);">
+            <li>Open this file in <strong>Google Chrome</strong> on your phone</li>
+            <li>Tap the <strong>⋮ menu</strong> (three dots) at the top right</li>
+            <li>Tap <strong>"Add to Home screen"</strong></li>
+            <li>Tap <strong>"Add"</strong> to confirm</li>
+            <li>The app icon will appear on your home screen ✅</li>
+          </ol>
+          <div style="margin-top:10px;padding:10px 14px;background:var(--primary-light);border-radius:8px;font-size:12.5px;color:var(--primary);">
+            💡 For the server version: open <strong>http://YOUR-IP:8080</strong> in Chrome, then follow the same steps.
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- END REPORTS PAGE -->
+
+    <!-- SMS / NOTIFICATION PAGE -->
+    <div class="page" id="page-sms">
+
+      <!-- Stats row -->
+      <div class="stat-grid" style="margin-bottom:18px;">
+        <div class="stat-card red"><div class="stat-num" id="smsAbsentCount">0</div><div class="stat-label">Absent Today / ዛሬ የቀሩ</div></div>
+        <div class="stat-card amber"><div class="stat-num" id="smsSentCount">0</div><div class="stat-label">Messages Sent / የተላኩ</div></div>
+        <div class="stat-card green"><div class="stat-num" id="smsReachedCount">0</div><div class="stat-label">Parents Reached / የተገናኙ</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start;flex-wrap:wrap;">
+
+        <!-- Left: absent list + send buttons -->
+        <div>
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+              <div class="card-title" style="margin-bottom:0;">📋 Absent Students / የቀሩ ተማሪዎች</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <input type="date" id="sms_date" style="padding:7px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;">
+                <button class="btn btn-primary btn-sm" onclick="loadAbsentForSMS()">🔍 Load</button>
+              </div>
+            </div>
+            <div id="smsAbsentList">
+              <div style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">Select a date and click Load to see absent students.</div>
+            </div>
+            <div id="smsBulkActions" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-success" onclick="sendAllSMS()">📲 Send SMS to All Parents</button>
+              <button class="btn btn-outline" onclick="copyAllNumbers()">📋 Copy All Numbers</button>
+              <button class="btn btn-accent" onclick="openWhatsAppAll()">💬 WhatsApp All</button>
+            </div>
+          </div>
+
+          <!-- SMS Log -->
+          <div class="card">
+            <div class="card-title">📜 SMS Log / የተላኩ መልዕክቶች</div>
+            <div id="smsLog" style="font-size:13px;color:var(--muted);">No messages sent yet.</div>
+          </div>
+        </div>
+
+        <!-- Right: message template -->
+        <div class="card">
+          <div class="card-title">✏️ Message Template / መልዕክት</div>
+          <div style="margin-bottom:10px;">
+            <label class="lbl">Language / ቋንቋ</label>
+            <div style="display:flex;gap:8px;margin-top:6px;">
+              <button class="btn btn-sm btn-outline" id="langAmh" onclick="setTemplate('amh')" style="flex:1;">አማርኛ</button>
+              <button class="btn btn-sm btn-primary" id="langEng" onclick="setTemplate('eng')" style="flex:1;">English</button>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="lbl">Message / መልዕክት</label>
+            <textarea id="smsTemplate" rows="6" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13.5px;resize:vertical;">Dear Parent, your child [NAME] was absent from [SCHOOL] on [DATE]. Please contact us. Thank you.</textarea>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">
+            Use <strong>[NAME]</strong> for student name, <strong>[DATE]</strong> for date, <strong>[SCHOOL]</strong> for school name.
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="lbl">School Phone / የትምህርት ቤት ስልክ</label>
+            <input type="tel" id="schoolPhone" placeholder="+251 9XX XXX XXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13.5px;">
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="loadAbsentForSMS()">🔄 Refresh List</button>
+        </div>
+
+      </div>
+    </div>
+    <!-- END SMS PAGE -->
+
+    <!-- USERS (Admin only) -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <div class="card-title">🔑 System Users / ተጠቃሚዎች</div>
+        <div id="usersList"></div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+</div>
+
+<!-- Camera Modal -->
+<div id="cameraModal">
+  <div class="camera-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <strong>📷 Capture Photo</strong>
+      <button onclick="closeCamera()" style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <video id="videoEl" autoplay playsinline></video>
+    <canvas id="canvasEl"></canvas>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="capturePhoto()">📸 Capture</button>
+      <button class="btn btn-outline" style="flex:1;" onclick="closeCamera()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ========== DATA ==========
+const ADMIN_CODE = 'HOHET2015';
+const SUBJECTS = ['Amharic','English','Math','Science','Social Studies','Religion','PE','Art'];
+
+let users = JSON.parse(localStorage.getItem('sms_users') || '[]');
+let students = JSON.parse(localStorage.getItem('sms_students') || '[]');
+let attendance = JSON.parse(localStorage.getItem('sms_attendance') || '{}');
+let scores = JSON.parse(localStorage.getItem('sms_scores') || '{}');
+let plans = JSON.parse(localStorage.getItem('sms_plans') || '[]');
+let currentUser = JSON.parse(sessionStorage.getItem('sms_session') || 'null');
+let tempPhotos = { student: null, parent: null };
+let cameraStream = null, currentPhotoTarget = null;
+
+// Seed default admin if no users
+if (users.length === 0) {
+  users.push({ id:'u1', name:'Admin', username:'admin', password:'admin123', role:'admin', grade:'', created: new Date().toISOString().split('T')[0] });
+  users.push({ id:'u2', name:'ዳግም', username:'dagim', password:'dagim1234', role:'superadmin', grade:'', created: new Date().toISOString().split('T')[0] });
+  saveAll();
+}
+
+function saveAll() {
+  localStorage.setItem('sms_users', JSON.stringify(users));
+  localStorage.setItem('sms_students', JSON.stringify(students));
+  localStorage.setItem('sms_attendance', JSON.stringify(attendance));
+  localStorage.setItem('sms_scores', JSON.stringify(scores));
+  localStorage.setItem('sms_plans', JSON.stringify(plans));
+}
+
+// ========== AUTH ==========
+document.getElementById('regRole').addEventListener('change', function() {
+  document.getElementById('adminCodeGroup').style.display = this.value === 'admin' ? 'block' : 'none';
+});
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0 && tab==='login')||(i===1 && tab==='register')));
+  document.getElementById('loginForm').classList.toggle('active', tab==='login');
+  document.getElementById('registerForm').classList.toggle('active', tab==='register');
+}
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  const found = users.find(x => x.username === u && x.password === p);
+  if (!found) { err.textContent = '❌ Wrong username or password / የተሳሳተ ስም ወይም የይለፍ ቃል'; err.style.display='block'; return; }
+  err.style.display='none';
+  currentUser = found;
+  sessionStorage.setItem('sms_session', JSON.stringify(found));
+  startApp();
+}
+
+function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const uname = document.getElementById('regUser').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const role = document.getElementById('regRole').value;
+  const grade = document.getElementById('regGrade').value;
+  const err = document.getElementById('regError');
+  if (!name || !uname || !pass) { err.textContent='⚠️ Fill all fields'; err.style.display='block'; return; }
+  if (users.find(x => x.username === uname)) { err.textContent='❌ Username already exists'; err.style.display='block'; return; }
+  if (role === 'admin') {
+    const code = document.getElementById('adminCode').value;
+    if (code !== ADMIN_CODE) { err.textContent='❌ Wrong admin code'; err.style.display='block'; return; }
+  }
+  users.push({ id:'u'+Date.now(), name, username:uname, password:pass, role, grade, created: new Date().toISOString().split('T')[0] });
+  saveAll();
+  err.style.display='none';
+  toast('✅ Account created! Please login.');
+  switchAuthTab('login');
+  document.getElementById('loginUser').value = uname;
+}
+
+function doLogout() {
+  currentUser = null;
+  sessionStorage.removeItem('sms_session');
+  document.getElementById('appScreen').classList.remove('show');
+  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('loginPass').value='';
+}
+
+function startApp() {
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appScreen').classList.add('show');
+  document.getElementById('sidebarName').textContent = currentUser.name;
+  document.getElementById('sidebarRole').textContent = currentUser.role + (currentUser.grade ? ' · ' + currentUser.grade : '');
+  document.getElementById('topbarRole').innerHTML = `<span class="role-badge role-${currentUser.role}">${currentUser.role}</span>`;
+  // Admin-only elements
+  const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+  document.querySelectorAll('.nav-admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+  // Show clear button immediately for superadmin
+  const cb = document.getElementById('clearStudentsBtn');
+  if(cb) cb.style.display = (currentUser.role === 'superadmin') ? 'inline-flex' : 'none';
+  // Pre-filter grade for controllers/teachers
+  if (currentUser.grade) {
+    document.getElementById('attGradeFilter').value = currentUser.grade;
+    document.getElementById('gradeFilter').value = currentUser.grade;
+    document.getElementById('scoreGrade').value = currentUser.grade;
+  }
+  initDate();
+  renderDashboard();
+  navigate('dashboard');
+}
+
+// Auto-login from session
+if (currentUser) startApp();
+
+// ========== NAVIGATION ==========
+function navigate(page) {
+  // Permission check
+  if (page === 'users' && currentUser.role !== 'admin' && currentUser.role !== 'superadmin') { toast('⛔ Admin only'); return; }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const idx = {dashboard:0,attendance:1,students:2,register:3,scores:4,plans:5,reports:6,sms:7,users:8};
+  const items = document.querySelectorAll('.nav-item');
+  if (items[idx[page]]) items[idx[page]].classList.add('active');
+  const titles = {dashboard:'Dashboard',attendance:'Attendance / ክትትል',students:'Students / ተማሪዎች',register:'Register Student',scores:'Scores / ውጤቶች',plans:'School Plan / እቅድ',reports:'Reports & Export / ሪፖርቶች',sms:'SMS / Notifications / ማሳወቂያ',users:'Users / ተጠቃሚዎች'};
+  document.getElementById('pageTitle').textContent = titles[page]||page;
+  if (page==='attendance') renderAttGrid();
+  if (page==='students') { renderStudentTable(); renderControllerTable(); }
+  if (page==='dashboard') renderDashboard();
+  if (page==='plans') renderPlans();
+  if (page==='users') renderUsers();
+  if (page==='reports') { renderIDCardList(); switchReportTab('idcard'); }
+  if (page==='sms') { initSMSPage(); }
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+function initDate() {
+  document.getElementById('reg_id').value = 'STU-'+String(students.length+1).padStart(4,'0');
+}
+
+// ========== DASHBOARD ==========
+function renderDashboard() {
+  document.getElementById('statTotal').textContent = students.length;
+  const today = new Date().toISOString().split('T')[0];
+  const att = attendance[today]||{};
+  document.getElementById('statPresent').textContent = Object.values(att).filter(v=>v==='present').length;
+  document.getElementById('statAbsent').textContent = Object.values(att).filter(v=>v==='absent').length;
+  document.getElementById('statUsers').textContent = users.length;
+  const recent = students.slice(-4).reverse();
+  document.getElementById('recentList').innerHTML = recent.length ? recent.map(s=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">${avatarHtml(s)}<div><div style="font-size:13px;font-weight:600">${s.fname} ${s.sname}</div><div style="font-size:10px;color:var(--muted)">${s.grade}</div></div></div>`).join('') : '<span style="color:var(--muted)">No students yet.</span>';
+  const upcoming = plans.filter(p=>p.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
+  document.getElementById('upcomingPlans').innerHTML = upcoming.length ? upcoming.map(p=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:600">${p.title}</div><div style="font-size:10px;color:var(--muted)">${p.date} · ${p.grade}</div></div>`).join('') : '<span style="color:var(--muted)">No plans added.</span>';
+}
+
+// ========== ATTENDANCE ==========
+function renderAttGrid() {
+  const grade = document.getElementById('attGradeFilter').value;
+  // Controllers only see their assigned grade
+  const effectiveGrade = (currentUser.role==='controller' && currentUser.grade) ? currentUser.grade : grade;
+  const filtered = students.filter(s=>!effectiveGrade||s.grade===effectiveGrade);
+  const today = new Date().toISOString().split('T')[0];
+  const att = attendance[today]||{};
+  const grid = document.getElementById('attGrid');
+  if (!filtered.length) { grid.innerHTML='<div style="color:var(--muted);font-size:12px;grid-column:1/-1;">No students found.</div>'; renderAttTable(att,filtered); return; }
+  grid.innerHTML = filtered.map(s=>{
+    const st = att[s.id]||'';
+    return `<div class="att-student ${st==='present'?'checked':st==='absent'?'absent-marked':''}" onclick="toggleAtt('${s.id}')" id="attCard_${s.id}">
+      ${avatarHtml(s,34)}<div class="sname">${s.fname}</div><div class="sgrade">${s.grade}</div></div>`;
+  }).join('');
+  renderAttTable(att,filtered);
+}
+
+function toggleAtt(id) {
+  const today = new Date().toISOString().split('T')[0];
+  if(!attendance[today]) attendance[today]={};
+  attendance[today][id] = attendance[today][id]==='present'?'absent':'present';
+  saveAll(); renderAttGrid();
+  if(attendance[today][id]==='present'){const s=students.find(x=>x.id===id);showFPResult(`✅ ${s.fname} ${s.sname} — Present`,`ok`);}
+}
+
+function markAllPresent() {
+  const grade = document.getElementById('attGradeFilter').value;
+  const effectiveGrade = (currentUser.role==='controller'&&currentUser.grade)?currentUser.grade:grade;
+  const filtered = students.filter(s=>!effectiveGrade||s.grade===effectiveGrade);
+  const today = new Date().toISOString().split('T')[0];
+  if(!attendance[today]) attendance[today]={};
+  filtered.forEach(s=>attendance[today][s.id]='present');
+  saveAll(); renderAttGrid(); toast('All marked present ✅');
+}
+
+function renderAttTable(att,filtered) {
+  const now = new Date().toLocaleTimeString();
+  document.getElementById('attTbody').innerHTML = filtered.map(s=>{
+    const st=att[s.id]||'unmarked';
+    return `<tr><td>${avatarHtml(s)} <strong style="margin-left:7px">${s.fname} ${s.sname}</strong></td>
+      <td>${s.grade}</td><td>${st==='present'?now:'—'}</td>
+      <td><span class="chip ${st==='present'?'present':st==='absent'?'absent':''}">${st}</span></td>
+      <td><button class="btn btn-sm" style="background:var(--success-light);color:var(--success)" onclick="setAtt('${s.id}','present')">✅</button>
+          <button class="btn btn-sm" style="background:var(--danger-light);color:var(--danger)" onclick="setAtt('${s.id}','absent')">❌</button></td></tr>`;
+  }).join('');
+}
+
+function setAtt(id,status){const today=new Date().toISOString().split('T')[0];if(!attendance[today])attendance[today]={};attendance[today][id]=status;saveAll();renderAttGrid();}
+
+function simulateScan() {
+  if(!students.length){showFPResult('⚠️ No students registered yet','fail');return;}
+  const today=new Date().toISOString().split('T')[0];
+  if(!attendance[today]) attendance[today]={};
+  const grade=(currentUser.role==='controller'&&currentUser.grade)?currentUser.grade:'';
+  const pool=students.filter(s=>!grade||s.grade===grade);
+  const unscanned=pool.filter(s=>!attendance[today][s.id]);
+  if(!unscanned.length){showFPResult('✅ All students already marked!','ok');return;}
+  const s=unscanned[Math.floor(Math.random()*unscanned.length)];
+  document.getElementById('fpIcon').classList.add('fp-scanning');
+  document.getElementById('fpTitle').textContent='Scanning... ⏳';
+  setTimeout(()=>{
+    document.getElementById('fpIcon').classList.remove('fp-scanning');
+    document.getElementById('fpTitle').textContent='Touch to Attend';
+    attendance[today][s.id]='present';
+    saveAll(); showFPResult(`✅ ${s.fname} ${s.sname} attended — ${s.grade}`,'ok'); renderAttGrid();
+  },1200);
+}
+
+function showFPResult(msg,type){const el=document.getElementById('fpResult');el.textContent=msg;el.className=`fp-result ${type} show`;setTimeout(()=>el.classList.remove('show'),3500);}
+
+// ========== REGISTER STUDENT ==========
+function saveStudent() {
+  const fname = document.getElementById('reg_fname').value.trim();
+  const grade = document.getElementById('reg_grade').value;
+  if(!fname||!grade){toast('⚠️ Name and grade required');return;}
+  // Controllers can only register to their grade
+  if(currentUser.role==='controller'&&currentUser.grade&&grade!==currentUser.grade){toast('⛔ You can only register students in your assigned grade: '+currentUser.grade);return;}
+  const s={
+    id:'STU-'+String(Date.now()).slice(-6),
+    fname, sname:v('reg_sname'), gname:v('reg_gname'), bname:v('reg_bname'),
+    gender:v('reg_gender'), dob:v('reg_dob'), national:v('reg_national'), grade,
+    birth_city:v('reg_birth_city'), birth_subcity:v('reg_birth_subcity'), birth_wereda:v('reg_birth_wereda'),
+    addr_city:v('reg_addr_city'), addr_subcity:v('reg_addr_subcity'), addr_wereda:v('reg_addr_wereda'),
+    area:v('reg_area'), house:v('reg_house'), phone:v('reg_phone'),
+    g1_fname:v('reg_g1_fname'), g1_sname:v('reg_g1_sname'), g1_gname:v('reg_g1_gname'),
+    g1_bname:v('reg_g1_bname'), g1_rel:v('reg_g1_rel'), g1_phone:v('reg_g1_phone'),
+    g2_fname:v('reg_g2_fname'), g2_sname:v('reg_g2_sname'), g2_rel:v('reg_g2_rel'), g2_phone:v('reg_g2_phone'),
+    how:v('reg_how'), special:v('reg_special'), ability:v('reg_ability'), notes:v('reg_notes'),
+    photo:tempPhotos.student||null, parentPhoto:tempPhotos.parent||null,
+    fp:false, registeredBy:currentUser.username, registered:new Date().toISOString().split('T')[0]
+  };
+  students.push(s); saveAll();
+  toast('✅ Student registered!'); clearForm(); tempPhotos={student:null,parent:null}; renderDashboard();
+}
+
+function v(id){return document.getElementById(id)?document.getElementById(id).value:'';}
+
+function clearForm(){
+  document.querySelectorAll('#page-register input, #page-register select, #page-register textarea').forEach(el=>{
+    if(el.type==='select-one') el.selectedIndex=0;
+    else if(el.id!=='reg_national'&&el.id!=='reg_addr_city') el.value='';
+  });
+  document.getElementById('reg_id').value='STU-'+String(students.length+1).padStart(4,'0');
+  document.getElementById('studentPhotoBox').innerHTML='<div class="photo-placeholder">📷<br>ፎቶ</div>';
+  document.getElementById('parentPhotoBox').innerHTML='<div class="photo-placeholder">📷<br>ፎቶ</div>';
+  tempPhotos={student:null,parent:null};
+  const fpBtn=document.getElementById('fpRegBtn');
+  fpBtn.textContent='📱 Register'; fpBtn.disabled=false; fpBtn.style.background='';
+  document.getElementById('fpRegStatus').style.display='none';
+}
+
+function simulateFPRegister(){
+  const btn=document.getElementById('fpRegBtn');
+  const status=document.getElementById('fpRegStatus');
+  btn.disabled=true; status.style.display='block';
+  status.style.background='var(--warning-light)'; status.style.color='var(--warning)';
+  const steps=['⏳ Place finger (1/3)...','⏳ Lift and place again (2/3)...','⏳ One more time (3/3)...'];
+  let i=0;
+  btn.textContent='Scanning...';
+  status.textContent=steps[0];
+  const iv=setInterval(()=>{
+    i++;
+    if(i<3){status.textContent=steps[i];}
+    else{
+      clearInterval(iv);
+      status.style.background='var(--success-light)'; status.style.color='var(--success)';
+      status.textContent='✅ Fingerprint registered! / የጣት አሻራ ተመዝግቧል!';
+      btn.textContent='✅ Done'; btn.style.background='var(--success)';
+    }
+  },1000);
+}
+
+// ========== STUDENT TABLE ==========
+function avatarHtml(s,size=30){
+  if(s.photo) return `<div class="avatar" style="width:${size}px;height:${size}px;"><img src="${s.photo}"></div>`;
+  const init=((s.fname||'?')[0]+((s.sname||'')[0]||'')).toUpperCase();
+  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;">${init}</div>`;
+}
+
+function renderStudentTable(){
+  // Show clear button only for superadmin
+  const cb = document.getElementById('clearStudentsBtn');
+  if(cb) cb.style.display = (currentUser && currentUser.role==='superadmin') ? 'inline-flex' : 'none';
+  console.log('Current user role:', currentUser ? currentUser.role : 'none', '| btn display:', cb ? cb.style.display : 'no btn');
+  const q=(document.getElementById('studentSearch').value||'').toLowerCase();
+  let grade=document.getElementById('gradeFilter').value;
+  if(currentUser.role==='controller'&&currentUser.grade) grade=currentUser.grade;
+  const filtered=students.filter(s=>{
+    const nm=`${s.fname} ${s.sname} ${s.gname}`.toLowerCase();
+    return(!q||nm.includes(q))&&(!grade||s.grade===grade);
+  });
+  const tbody=document.getElementById('studentTbody');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px;">No students found.</td></tr>';return;}
+  tbody.innerHTML=filtered.map(s=>`<tr>
+    <td>${avatarHtml(s,34)}</td>
+    <td style="font-size:10px;color:var(--muted)">${s.id}</td>
+    <td><strong>${s.fname} ${s.sname}</strong>${s.bname?`<br><span style="font-size:10px;color:var(--muted)">${s.bname}</span>`:''}</td>
+    <td>${s.grade}</td><td>${s.gender||'—'}</td>
+    <td>${s.g1_fname||'—'}<br><span style="font-size:10px;color:var(--muted)">${s.g1_rel||''}</span></td>
+    <td>${s.g1_phone||s.phone||'—'}</td>
+    <td>${s.fp?'✅':'⬜'}</td>
+    <td>
+      <button class="btn btn-sm btn-outline" onclick="viewStudent('${s.id}')">👁</button>
+      <button class="btn btn-sm" style="background:var(--danger-light);color:var(--danger)" onclick="deleteStudent('${s.id}')">🗑</button>
+    </td></tr>`).join('');
+}
+
+function renderControllerTable(){
+  const roleFilter = document.getElementById('controllerRoleFilter') ? document.getElementById('controllerRoleFilter').value : '';
+  const filtered = users.filter(u => !roleFilter || u.role === roleFilter);
+  const tbody = document.getElementById('controllerTbody');
+  if(!tbody) return;
+  const colors = {admin:'#1a4fa0',superadmin:'#2d1b6e',teacher:'#1e7e34',controller:'#c8922a'};
+  const isSuperAdmin = currentUser && currentUser.role === 'superadmin';
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:16px;">No users found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(u => {
+    const initial = (u.name||'?')[0].toUpperCase();
+    const avatarDiv = '<div style="width:34px;height:34px;border-radius:50%;background:'+(colors[u.role]||'#888')+';color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;">'+initial+'</div>';
+    const pwdCell = isSuperAdmin
+      ? '<td><span style="font-family:monospace;font-size:12px;background:var(--bg);padding:3px 8px;border-radius:5px;border:1px solid var(--border);letter-spacing:1px;">'+(u.password||'—')+'</span></td>'
+      : '<td style="color:var(--muted);font-size:12px;">••••••</td>';
+    const isSelf = u.username === 'dagim';
+    const deleteBtn = (isSuperAdmin && !isSelf)
+      ? '<button class="btn btn-sm" style="background:var(--danger-light);color:var(--danger);padding:4px 10px;border-radius:6px;font-size:13px;cursor:pointer;" onclick="deleteUserFromStudents(''+u.id+'')">🗑</button>'
+      : '';
+    const resetBtn = (isSuperAdmin && !isSelf)
+      ? '<button class="btn btn-sm btn-outline" style="padding:4px 10px;border-radius:6px;font-size:13px;cursor:pointer;" onclick="resetPassword(''+u.id+'')">🔑</button>'
+      : (isSelf ? '<span style="font-size:11px;color:var(--muted);">Protected</span>' : '');
+    const row = '<tr>'
+      + '<td>'+avatarDiv+'</td>'
+      + '<td><strong>'+u.name+'</strong></td>'
+      + '<td style="color:var(--muted);font-size:12px;">@'+u.username+'</td>'
+      + pwdCell
+      + '<td><span class="role-badge role-'+u.role+'">'+u.role+'</span></td>'
+      + '<td>'+(u.grade||'—')+'</td>'
+      + '<td style="font-size:12px;color:var(--muted);">'+(u.created||'—')+'</td>'
+      + '<td><div style="display:flex;gap:5px;align-items:center;">'+resetBtn+deleteBtn+'</div></td>'
+      + '</tr>';
+    return row;
+  }).join('');
+}
+
+function deleteUserFromStudents(id){
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+  if(!confirm('Delete user '+u.name+'? This cannot be undone.')) return;
+  users = users.filter(x=>x.id!==id);
+  saveAll();
+  renderControllerTable();
+  toast('🗑 '+u.name+' removed');
+}
+
+function deleteStudent(id){if(!confirm('Delete this student?'))return;students=students.filter(s=>s.id!==id);saveAll();renderStudentTable();renderDashboard();toast('Removed');}
+
+function viewStudent(id){
+  const s=students.find(x=>x.id===id);if(!s)return;
+  alert(`ID: ${s.id}\nName: ${s.fname} ${s.sname} ${s.gname}\nBaptism: ${s.bname}\nGrade: ${s.grade}\nGender: ${s.gender}\nDOB: ${s.dob}\nAddress: ${s.area}, ${s.addr_subcity}, Wereda ${s.addr_wereda}\nGuardian: ${s.g1_fname} ${s.g1_sname} (${s.g1_rel}) - ${s.g1_phone}\nRegistered: ${s.registered} by ${s.registeredBy||'—'}\nFingerprint: ${s.fp?'Registered':'Not registered'}`);
+}
+
+// ========== SCORES ==========
+function renderScoreTable(){
+  let grade=document.getElementById('scoreGrade').value;
+  if(currentUser.role==='controller'&&currentUser.grade) grade=currentUser.grade;
+  const sem=document.getElementById('scoreSemester').value;
+  const el=document.getElementById('scoreContent');
+  if(!grade){el.innerHTML='<span style="color:var(--muted)">Select a grade above.</span>';return;}
+  const gradeStudents=students.filter(s=>s.grade===grade);
+  if(!gradeStudents.length){el.innerHTML='<span style="color:var(--muted)">No students in this grade.</span>';return;}
+  const key=`${grade}__${sem}`;
+  const saved=scores[key]||{};
+  let html=`<div class="table-wrap"><table class="score-table"><thead><tr><th>#</th><th>Student</th>`;
+  SUBJECTS.forEach(s=>html+=`<th style="min-width:70px">${s}</th>`);
+  html+=`<th>Total</th><th>Avg</th><th>Grade</th></tr></thead><tbody>`;
+  gradeStudents.forEach((s,i)=>{
+    html+=`<tr><td>${i+1}</td><td style="white-space:nowrap">${avatarHtml(s)} <strong style="margin-left:6px;font-size:12px">${s.fname} ${s.sname}</strong></td>`;
+    SUBJECTS.forEach(sub=>{
+      const val=(saved[s.id]||{})[sub]||'';
+      html+=`<td><input type="number" min="0" max="100" value="${val}" placeholder="0" onchange="scoreChanged('${key}','${s.id}','${sub}',this.value)" style="width:60px;text-align:center;padding:4px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;"></td>`;
+    });
+    const vals=SUBJECTS.map(sub=>parseFloat((saved[s.id]||{})[sub]||0));
+    const total=vals.reduce((a,b)=>a+b,0);
+    const avg=(total/SUBJECTS.length).toFixed(1);
+    const gl=avg>=90?'A':avg>=80?'B':avg>=70?'C':avg>=60?'D':'F';
+    html+=`<td id="tot_${s.id}"><strong>${total}</strong></td><td id="avg_${s.id}">${avg}</td><td><span class="grade-chip grade-${gl}" id="gl_${s.id}">${gl}</span></td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+
+function scoreChanged(key,sid,sub,val){
+  if(!scores[key])scores[key]={};
+  if(!scores[key][sid])scores[key][sid]={};
+  scores[key][sid][sub]=parseFloat(val)||0;
+  const vals=SUBJECTS.map(s=>parseFloat((scores[key][sid]||{})[s]||0));
+  const total=vals.reduce((a,b)=>a+b,0);
+  const avg=(total/SUBJECTS.length).toFixed(1);
+  const gl=avg>=90?'A':avg>=80?'B':avg>=70?'C':avg>=60?'D':'F';
+  const t=document.getElementById('tot_'+sid);const a=document.getElementById('avg_'+sid);const g=document.getElementById('gl_'+sid);
+  if(t)t.innerHTML=`<strong>${total}</strong>`;if(a)a.textContent=avg;if(g){g.textContent=gl;g.className=`grade-chip grade-${gl}`;}
+}
+
+function saveScores(){saveAll();toast('✅ Scores saved!');}
+
+// ========== PLANS ==========
+function addPlan(){
+  const title=document.getElementById('plan_title').value.trim();
+  const date=document.getElementById('plan_date').value;
+  if(!title||!date){toast('⚠️ Title and date required');return;}
+  // Controllers can only add plans for their grade
+  let grade=document.getElementById('plan_grade').value;
+  if(currentUser.role==='controller'&&currentUser.grade) grade=currentUser.grade;
+  plans.push({title,date,cat:document.getElementById('plan_cat').value,desc:document.getElementById('plan_desc').value,grade,addedBy:currentUser.username});
+  plans.sort((a,b)=>a.date.localeCompare(b.date));
+  saveAll();
+  document.getElementById('plan_title').value='';
+  document.getElementById('plan_date').value='';
+  document.getElementById('plan_desc').value='';
+  renderPlans(); toast('✅ Plan added!');
+}
+
+function renderPlans(){
+  const el=document.getElementById('plansList');
+  const grade=currentUser.role==='controller'&&currentUser.grade?currentUser.grade:'';
+  const filtered=plans.filter(p=>!grade||p.grade===grade||p.grade==='All');
+  if(!filtered.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;">No plans yet.</div>';return;}
+  const byMonth={};
+  filtered.forEach(p=>{const m=p.date.slice(0,7);if(!byMonth[m])byMonth[m]=[];byMonth[m].push(p);});
+  el.innerHTML=Object.keys(byMonth).sort().map(m=>{
+    const label=new Date(m+'-01').toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+    const items=byMonth[m].map(p=>{
+      const catCls={academic:'cat-academic',exam:'cat-exam',event:'cat-event',holiday:'cat-holiday'}[p.cat]||'cat-academic';
+      return `<div class="plan-item"><div class="date-badge">${p.date.slice(8,10)}<br>${new Date(p.date).toLocaleDateString('en-GB',{month:'short'})}</div>
+        <div style="flex:1"><div style="font-size:13px;font-weight:700">${p.title}</div>
+        ${p.desc?`<div style="font-size:11px;color:var(--muted)">${p.desc}</div>`:''}
+        <div style="margin-top:3px;display:flex;gap:6px;"><span class="plan-category ${catCls}">${p.cat}</span><span style="font-size:10px;color:var(--muted)">${p.grade}</span></div></div>
+        ${currentUser.role==='admin'?`<button onclick="deletePlan(${plans.indexOf(p)})" class="btn btn-sm" style="background:var(--danger-light);color:var(--danger)">✕</button>`:''}
+        </div>`;
+    }).join('');
+    return `<div class="plan-month"><div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;">${label}</div>${items}</div>`;
+  }).join('');
+}
+
+function deletePlan(idx){plans.splice(idx,1);saveAll();renderPlans();toast('Removed');}
+
+// ========== USERS PAGE ==========
+function renderUsers(){
+  const colors={admin:'#1a4fa0',superadmin:'#2d1b6e',teacher:'#1e7e34',controller:'#c8922a'};
+  const isSuperAdmin = currentUser.role==='superadmin';
+  document.getElementById('usersList').innerHTML = users.map(u=>`
+    <div class="user-card">
+      <div class="user-avatar" style="background:${colors[u.role]||'#888'}">${u.name[0].toUpperCase()}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700">${u.name} <span style="font-size:11px;font-weight:400;color:var(--muted)">@${u.username}</span></div>
+        <div style="font-size:11px;margin-top:2px;"><span class="role-badge role-${u.role}">${u.role}</span>${u.grade?` · ${u.grade}`:''} · Joined ${u.created||'—'}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        ${(isSuperAdmin && u.username!=='dagim')?`<button class="btn btn-sm btn-outline" onclick="resetPassword('${u.id}')">🔑 Reset</button>`:''}
+        ${(isSuperAdmin && u.username!=='dagim')?`<button class="btn btn-sm" style="background:var(--danger-light);color:var(--danger)" onclick="deleteUser('${u.id}')">🗑 Delete</button>`:''}
+        ${(!isSuperAdmin && currentUser.role==='admin' && u.username!=='admin' && u.username!=='dagim')?`<button class="btn btn-sm" style="background:var(--danger-light);color:var(--danger)" onclick="deleteUser('${u.id}')">🗑</button>`:''}
+      </div>
+    </div>`).join('');
+  // Show reset password modal area
+  if(!document.getElementById('resetPwdArea')){
+    const div=document.createElement('div');
+    div.id='resetPwdArea';
+    div.style='display:none;margin-top:16px;';
+    div.innerHTML=`<div class="card"><div class="card-title">🔑 Reset Password</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <div><label class="lbl">User</label><div id="resetUserName" style="font-size:14px;font-weight:700;margin-top:4px;"></div></div>
+        <div style="flex:1;min-width:180px;"><label class="lbl">New Password / አዲስ የይለፍ ቃል</label><input type="password" id="newPwdInput" placeholder="Enter new password" style="width:100%"></div>
+        <div style="margin-top:16px;"><button class="btn btn-primary" onclick="confirmResetPwd()">✅ Save Password</button>
+        <button class="btn btn-outline" style="margin-left:8px" onclick="cancelReset()">Cancel</button></div>
+      </div></div>`;
+    document.getElementById('page-users').appendChild(div);
+  }
+}
+
+let resetTargetId=null;
+function resetPassword(id){
+  const u=users.find(x=>x.id===id);if(!u)return;
+  resetTargetId=id;
+  document.getElementById('resetUserName').textContent=u.name+' (@'+u.username+')';
+  document.getElementById('newPwdInput').value='';
+  document.getElementById('resetPwdArea').style.display='block';
+  document.getElementById('resetPwdArea').scrollIntoView({behavior:'smooth'});
+}
+function confirmResetPwd(){
+  const newPwd=document.getElementById('newPwdInput').value.trim();
+  if(!newPwd||newPwd.length<4){toast('⚠️ Password must be at least 4 characters');return;}
+  const idx=users.findIndex(x=>x.id===resetTargetId);
+  if(idx<0)return;
+  users[idx].password=newPwd;
+  saveAll();
+  // Update session if this user is logged in
+  if(currentUser.id===resetTargetId){sessionStorage.setItem('sms_session',JSON.stringify(users[idx]));}
+  toast('✅ Password reset for '+users[idx].name);
+  document.getElementById('resetPwdArea').style.display='none';
+  resetTargetId=null;
+}
+function cancelReset(){document.getElementById('resetPwdArea').style.display='none';resetTargetId=null;}
+function deleteUser(id){
+  const u=users.find(x=>x.id===id);
+  if(!u)return;
+  if(!confirm('Delete user '+u.name+'? This cannot be undone.'))return;
+  users=users.filter(x=>x.id!==id);
+  saveAll();renderUsers();toast('🗑 User '+u.name+' removed');
+}
+
+// ========== CAMERA ==========
+function openCamera(target){
+  currentPhotoTarget=target;
+  document.getElementById('cameraModal').classList.add('open');
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}})
+    .then(stream=>{cameraStream=stream;document.getElementById('videoEl').srcObject=stream;})
+    .catch(()=>{closeCamera();document.getElementById(target+'PhotoFile').click();});
+}
+function closeCamera(){
+  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
+  document.getElementById('cameraModal').classList.remove('open');
+}
+function capturePhoto(){
+  const v=document.getElementById('videoEl'),c=document.getElementById('canvasEl');
+  c.width=v.videoWidth;c.height=v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  setPhoto(currentPhotoTarget,c.toDataURL('image/jpeg',0.7));
+  closeCamera();
+}
+function handleFilePhoto(target,input){
+  if(!input.files[0])return;
+  const r=new FileReader();r.onload=e=>setPhoto(target,e.target.result);r.readAsDataURL(input.files[0]);
+}
+function setPhoto(target,dataUrl){
+  tempPhotos[target]=dataUrl;
+  document.getElementById(target+'PhotoBox').innerHTML=`<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+}
+
+// ========== CLEAR ALL STUDENTS ==========
+function confirmClearAll(){
+  const box = document.getElementById('clearConfirmBox2') || document.getElementById('clearConfirmBox');
+  if(box){ box.style.display='block'; }
+  const inp = document.getElementById('deleteConfirmInput');
+  if(inp){ inp.value=''; inp.focus(); }
+}
+function cancelClear(){
+  const box = document.getElementById('clearConfirmBox2') || document.getElementById('clearConfirmBox');
+  if(box) box.style.display='none';
+  const inp = document.getElementById('deleteConfirmInput');
+  if(inp) inp.value='';
+}
+function executeClearAll(){
+  const val=document.getElementById('deleteConfirmInput').value.trim();
+  if(val!=='DELETE'){toast('⚠️ Type DELETE exactly to confirm');return;}
+  students=[];
+  attendance={};
+  scores={};
+  saveAll();
+  document.getElementById('clearConfirmBox').style.display='none';
+  renderDashboard();
+  toast('✅ All student records cleared');
+}
+
+// ========== SMS / NOTIFICATIONS ==========
+let smsLog = JSON.parse(localStorage.getItem('sms_log')||'[]');
+let smsAbsentStudents = [];
+
+const SMS_TEMPLATES = {
+  eng: 'Dear Parent, your child [NAME] was absent from [SCHOOL] on [DATE]. Please contact us at [PHONE]. Thank you.',
+  amh: 'ውድ ወላጅ፣ ልጅዎ [NAME] ዛሬ [DATE] ትምህርት ቤት አልቀረቡም። እባክዎ [PHONE] ላይ ያግኙን። አመሰግናለሁ።'
+};
+
+function initSMSPage(){
+  document.getElementById('sms_date').value = new Date().toISOString().split('T')[0];
+  loadAbsentForSMS();
+  renderSMSLog();
+}
+
+function setTemplate(lang){
+  document.getElementById('smsTemplate').value = SMS_TEMPLATES[lang];
+  document.getElementById('langAmh').className = lang==='amh' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline';
+  document.getElementById('langEng').className = lang==='eng' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline';
+}
+
+function buildMessage(studentName, date){
+  let msg = document.getElementById('smsTemplate').value;
+  const phone = document.getElementById('schoolPhone').value || 'school office';
+  msg = msg.replace(/\[NAME\]/g, studentName);
+  msg = msg.replace(/\[DATE\]/g, date);
+  msg = msg.replace(/\[SCHOOL\]/g, 'ኆኅተ ጥበብ ህፃናት ክፍል');
+  msg = msg.replace(/\[PHONE\]/g, phone);
+  return msg;
+}
+
+function loadAbsentForSMS(){
+  const date = document.getElementById('sms_date').value || new Date().toISOString().split('T')[0];
+  const att = attendance[date]||{};
+  smsAbsentStudents = students.filter(s => att[s.id]==='absent');
+  const el = document.getElementById('smsAbsentList');
+  const bulk = document.getElementById('smsBulkActions');
+
+  document.getElementById('smsAbsentCount').textContent = smsAbsentStudents.length;
+
+  if(!smsAbsentStudents.length){
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--success);font-weight:600;font-size:14px;">✅ No absent students on '+date+'</div>';
+    bulk.style.display = 'none';
+    return;
+  }
+
+  bulk.style.display = 'flex';
+  el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+    + '<thead><tr>'
+    + '<th style="padding:8px 10px;text-align:left;background:var(--bg);border-bottom:1.5px solid var(--border);">Student / ተማሪ</th>'
+    + '<th style="padding:8px 10px;background:var(--bg);border-bottom:1.5px solid var(--border);">Grade</th>'
+    + '<th style="padding:8px 10px;background:var(--bg);border-bottom:1.5px solid var(--border);">Guardian Phone</th>'
+    + '<th style="padding:8px 10px;background:var(--bg);border-bottom:1.5px solid var(--border);">Actions</th>'
+    + '</tr></thead><tbody>'
+    + smsAbsentStudents.map((s,i) => {
+        const phone = s.g1_phone || s.phone || '';
+        const name = s.fname+' '+s.sname;
+        const hasPh = phone.length > 3;
+        return '<tr style="background:'+(i%2===0?'#fff':'var(--bg)')+';">'
+          + '<td style="padding:8px 10px;">'+avatarHtml(s)+' <strong style="margin-left:6px;">'+name+'</strong></td>'
+          + '<td style="padding:8px 10px;text-align:center;">'+s.grade+'</td>'
+          + '<td style="padding:8px 10px;text-align:center;">'+(hasPh ? '<a href="tel:'+phone+'" style="color:var(--primary);font-weight:600;">'+phone+'</a>' : '<span style="color:var(--danger);">No phone</span>')+'</td>'
+          + '<td style="padding:8px 10px;">'
+          + (hasPh
+              ? '<div style="display:flex;gap:5px;flex-wrap:wrap;">'
+                + '<a href="sms:'+phone+'?body='+encodeURIComponent(buildMessage(name, document.getElementById('sms_date').value))+'" class="btn btn-sm btn-success" style="text-decoration:none;" onclick="logSMS(''+s.id+'',''+name+'',''+phone+'')">📲 SMS</a>'
+                + '<a href="https://wa.me/'+phone.replace(/[^0-9]/g,'')+('?text='+encodeURIComponent(buildMessage(name, document.getElementById('sms_date').value)))+'" target="_blank" class="btn btn-sm btn-primary" style="text-decoration:none;background:#25D366;" onclick="logSMS(''+s.id+'',''+name+'',''+phone+'')">💬 WhatsApp</a>'
+                + '<a href="tel:'+phone+'" class="btn btn-sm btn-outline" style="text-decoration:none;" >📞 Call</a>'
+                + '</div>'
+              : '<span style="font-size:11px;color:var(--muted);">No contact</span>')
+          + '</td></tr>';
+      }).join('')
+    + '</tbody></table>';
+}
+
+function logSMS(sid, name, phone){
+  const entry = {
+    id: Date.now(),
+    student: name,
+    phone: phone,
+    date: document.getElementById('sms_date').value,
+    time: new Date().toLocaleTimeString(),
+    type: 'SMS'
+  };
+  smsLog.unshift(entry);
+  if(smsLog.length > 50) smsLog = smsLog.slice(0,50);
+  localStorage.setItem('sms_log', JSON.stringify(smsLog));
+  document.getElementById('smsSentCount').textContent = smsLog.length;
+  const reached = [...new Set(smsLog.map(x=>x.phone))].length;
+  document.getElementById('smsReachedCount').textContent = reached;
+  renderSMSLog();
+}
+
+function renderSMSLog(){
+  const el = document.getElementById('smsLog');
+  if(!smsLog.length){ el.innerHTML='<div style="color:var(--muted);">No messages sent yet.</div>'; return; }
+  document.getElementById('smsSentCount').textContent = smsLog.length;
+  const reached = [...new Set(smsLog.map(x=>x.phone))].length;
+  document.getElementById('smsReachedCount').textContent = reached;
+  el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12.5px;">'
+    + '<thead><tr>'
+    + '<th style="padding:6px 8px;background:var(--bg);border-bottom:1px solid var(--border);text-align:left;">Student</th>'
+    + '<th style="padding:6px 8px;background:var(--bg);border-bottom:1px solid var(--border);">Phone</th>'
+    + '<th style="padding:6px 8px;background:var(--bg);border-bottom:1px solid var(--border);">Date</th>'
+    + '<th style="padding:6px 8px;background:var(--bg);border-bottom:1px solid var(--border);">Time</th>'
+    + '</tr></thead><tbody>'
+    + smsLog.map((x,i) => '<tr style="background:'+(i%2===0?'#fff':'var(--bg)')+';">'
+        + '<td style="padding:6px 8px;font-weight:600;">'+x.student+'</td>'
+        + '<td style="padding:6px 8px;color:var(--primary);">'+x.phone+'</td>'
+        + '<td style="padding:6px 8px;color:var(--muted);">'+x.date+'</td>'
+        + '<td style="padding:6px 8px;color:var(--muted);">'+x.time+'</td>'
+        + '</tr>').join('')
+    + '</tbody></table>';
+}
+
+function sendAllSMS(){
+  const date = document.getElementById('sms_date').value;
+  const withPhone = smsAbsentStudents.filter(s => s.g1_phone||s.phone);
+  if(!withPhone.length){ toast('⚠️ No students with phone numbers'); return; }
+  withPhone.forEach(s => {
+    const phone = s.g1_phone||s.phone;
+    const name = s.fname+' '+s.sname;
+    logSMS(s.id, name, phone);
+  });
+  toast('✅ Logged '+withPhone.length+' messages. Use individual SMS/WhatsApp buttons to send.');
+}
+
+function copyAllNumbers(){
+  const nums = smsAbsentStudents.map(s => s.g1_phone||s.phone).filter(Boolean);
+  if(!nums.length){ toast('⚠️ No phone numbers found'); return; }
+  navigator.clipboard.writeText(nums.join(', ')).then(()=>toast('✅ '+nums.length+' numbers copied!')).catch(()=>toast('Numbers: '+nums.join(', ')));
+}
+
+function openWhatsAppAll(){
+  const withPhone = smsAbsentStudents.filter(s => s.g1_phone||s.phone);
+  if(!withPhone.length){ toast('⚠️ No students with phone numbers'); return; }
+  const date = document.getElementById('sms_date').value;
+  const s = withPhone[0];
+  const phone = (s.g1_phone||s.phone).replace(/[^0-9]/g,'');
+  const msg = buildMessage(s.fname+' '+s.sname, date);
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+  toast('💬 Opening WhatsApp for first student. Send others individually.');
+}
+
+// ========== BACKUP & RESTORE ==========
+function backupData(){
+  const backup = {
+    version: 1,
+    date: new Date().toISOString(),
+    students: students,
+    attendance: attendance,
+    scores: scores,
+    plans: plans,
+    users: users,
+    smsLog: smsLog
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = 'school_backup_'+dateStr+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ Backup saved! Keep this file safe.');
+}
+
+function restoreData(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const backup = JSON.parse(e.target.result);
+      if(!backup.version || !backup.students){
+        toast('❌ Invalid backup file');
+        return;
+      }
+      if(!confirm('⚠️ This will REPLACE all current data with the backup. Continue?')) return;
+      students   = backup.students   || [];
+      attendance = backup.attendance || {};
+      scores     = backup.scores     || {};
+      plans      = backup.plans      || [];
+      users      = backup.users      || users;
+      smsLog     = backup.smsLog     || [];
+      saveAll();
+      localStorage.setItem('sms_log', JSON.stringify(smsLog));
+      renderDashboard();
+      toast('✅ Data restored from backup! '+students.length+' students loaded.');
+    } catch(err){
+      toast('❌ Could not read backup file: '+err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ========== TOAST ==========
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2800);}
+
+// ========== REPORTS — TAB SWITCH ==========
+function switchReportTab(tab) {
+  ['idcard','reportcard','absent','export'].forEach(t => {
+    document.getElementById('rpanel-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('rtab-'+t).classList.toggle('active', t===tab);
+  });
+  if(tab==='idcard') renderIDCardList();
+  if(tab==='reportcard') renderReportCardList();
+  if(tab==='absent'){document.getElementById('absent_date').value=new Date().toISOString().split('T')[0];renderAbsentList();}
+}
+
+// ========== ID CARDS ==========
+const SCHOOL_NAME='ኆኅተ ጥበብ ህፃናት ክፍል';
+const CHURCH_NAME='ቅዱስ ዮሴፍ ቤተ ክርስቲያን — ደብረ ናዝሬት';
+
+function idCardHTML(s){
+  const photo=s.photo
+    ?'<img src="'+s.photo+'" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid #c8922a;">'
+    :'<div style="width:70px;height:70px;border-radius:50%;background:#e8f0fb;border:2px solid #c8922a;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#1a4fa0;">'+(s.fname||'?')[0].toUpperCase()+'</div>';
+  return '<div style="width:200px;background:linear-gradient(135deg,#0f3070,#1a4fa0);border-radius:12px;padding:14px 12px;color:#fff;font-family:sans-serif;flex-shrink:0;">'
+    +'<div style="text-align:center;font-size:9px;font-weight:700;color:#c8922a;letter-spacing:0.5px;margin-bottom:2px;">'+CHURCH_NAME+'</div>'
+    +'<div style="text-align:center;font-size:10px;font-weight:700;color:#fff;margin-bottom:10px;">'+SCHOOL_NAME+'</div>'
+    +'<div style="display:flex;justify-content:center;margin-bottom:8px;">'+photo+'</div>'
+    +'<div style="text-align:center;font-size:13px;font-weight:700;">'+( s.fname||'')+' '+(s.sname||'')+'</div>'
+    +(s.bname?'<div style="text-align:center;font-size:10px;color:rgba(255,255,255,0.7);">'+s.bname+'</div>':'')
+    +'<div style="margin-top:6px;background:rgba(255,255,255,0.12);border-radius:6px;padding:5px 8px;">'
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:rgba(255,255,255,0.6)">Grade:</span><span style="font-weight:600">'+(s.grade||'—')+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:rgba(255,255,255,0.6)">ID:</span><span style="font-weight:600">'+(s.id||'—')+'</span></div>'
+    +(s.phone?'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:rgba(255,255,255,0.6)">Phone:</span><span>'+s.phone+'</span></div>':'')
+    +'</div><div style="text-align:center;font-size:9px;color:rgba(255,255,255,0.5);margin-top:6px;">'+new Date().getFullYear()+'–'+(new Date().getFullYear()+1)+'</div></div>';
+}
+
+function renderIDCardList(){
+  const grade=document.getElementById('idcard_grade')?document.getElementById('idcard_grade').value:'';
+  const filtered=grade?students.filter(s=>s.grade===grade):students;
+  const el=document.getElementById('idCardPreview');
+  if(!el)return;
+  el.innerHTML=filtered.length?filtered.map(s=>idCardHTML(s)).join(''):'<div style="color:var(--muted);font-size:13px;">No students found.</div>';
+}
+
+function printIDCards(){
+  const grade=document.getElementById('idcard_grade').value;
+  const filtered=grade?students.filter(s=>s.grade===grade):students;
+  if(!filtered.length){toast('⚠️ No students to print');return;}
+  const win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ID Cards</title><style>body{margin:0;padding:16px;background:#f0f0f0;}.grid{display:flex;flex-wrap:wrap;gap:14px;}@media print{body{background:#fff;padding:0;}}</style></head><body><div class="grid">'+filtered.map(s=>idCardHTML(s)).join('')+'</div><script>window.onload=function(){window.print();}<\/script></body></html>');
+  win.document.close();
+}
+
+// ========== REPORT CARD ==========
+const SUBJECTS_LIST=['Amharic','English','Math','Science','Social Studies','Religion','Physical Ed','Art'];
+
+function reportCardHTML(s,grade,sem){
+  const key=grade+'__'+sem;
+  const sc=(scores[key]||{})[s.id]||{};
+  const vals=SUBJECTS_LIST.map(sub=>parseFloat(sc[sub]||0));
+  const total=vals.reduce((a,b)=>a+b,0);
+  const avg=(total/SUBJECTS_LIST.length).toFixed(1);
+  const gl=avg>=90?'A':avg>=80?'B':avg>=70?'C':avg>=60?'D':'F';
+  const rows=SUBJECTS_LIST.map((sub,i)=>'<tr style="background:'+(i%2===0?'#f8f9ff':'#fff')+'"><td style="padding:5px 8px;font-size:12px;">'+sub+'</td><td style="padding:5px 8px;text-align:center;font-size:12px;font-weight:600;">'+(sc[sub]||'—')+'</td><td style="padding:5px 8px;text-align:center;font-size:12px;">'+(sc[sub]>=90?'A':sc[sub]>=80?'B':sc[sub]>=70?'C':sc[sub]>=60?'D':sc[sub]?'F':'—')+'</td></tr>').join('');
+  const photoEl=s.photo?'<img src="'+s.photo+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">':'<div style="width:44px;height:44px;border-radius:50%;background:#e8f0fb;display:flex;align-items:center;justify-content:center;font-weight:700;color:#1a4fa0;font-size:18px;">'+s.fname[0]+'</div>';
+  return '<div style="width:260px;border:1.5px solid #dde3ef;border-radius:10px;overflow:hidden;font-family:sans-serif;">'
+    +'<div style="background:linear-gradient(135deg,#0f3070,#1a4fa0);padding:12px;color:#fff;text-align:center;">'
+    +'<div style="font-size:10px;color:#c8922a;font-weight:700;">'+CHURCH_NAME+'</div>'
+    +'<div style="font-size:11px;font-weight:700;margin-top:2px;">'+SCHOOL_NAME+'</div>'
+    +'<div style="font-size:10px;opacity:0.7;margin-top:2px;">Report Card — '+sem+'</div></div>'
+    +'<div style="padding:10px 12px;background:#f8f9ff;display:flex;gap:10px;align-items:center;">'
+    +'<div style="flex-shrink:0;">'+photoEl+'</div>'
+    +'<div><div style="font-size:13px;font-weight:700;">'+s.fname+' '+s.sname+'</div><div style="font-size:11px;color:#6b7a99;">'+s.grade+' · '+s.id+'</div></div></div>'
+    +'<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#e8f0fb;"><th style="padding:5px 8px;font-size:11px;text-align:left;">Subject</th><th style="padding:5px 8px;font-size:11px;">Score</th><th style="padding:5px 8px;font-size:11px;">Grade</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'<tfoot><tr style="background:#0f3070;color:#fff;"><td style="padding:6px 8px;font-size:12px;font-weight:700;">Total / Average</td><td style="padding:6px 8px;text-align:center;font-weight:700;">'+total+'</td><td style="padding:6px 8px;text-align:center;font-size:13px;font-weight:700;">'+gl+'</td></tr></tfoot></table></div>';
+}
+
+function renderReportCardList(){
+  const grade=document.getElementById('rc_grade').value;
+  const sem=document.getElementById('rc_semester').value;
+  const el=document.getElementById('reportCardPreview');
+  if(!grade){el.innerHTML='<div style="color:var(--muted);font-size:13px;">Select a grade to preview.</div>';return;}
+  const gs=students.filter(s=>s.grade===grade);
+  if(!gs.length){el.innerHTML='<div style="color:var(--muted)">No students in this grade.</div>';return;}
+  el.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:16px;">'+gs.slice(0,3).map(s=>reportCardHTML(s,grade,sem)).join('')+'</div><div style="margin-top:10px;font-size:12px;color:var(--muted);">Showing first 3. Click Print to get all.</div>';
+}
+
+function printReportCards(){
+  const grade=document.getElementById('rc_grade').value;
+  const sem=document.getElementById('rc_semester').value;
+  if(!grade){toast('⚠️ Select a grade first');return;}
+  const gs=students.filter(s=>s.grade===grade);
+  if(!gs.length){toast('⚠️ No students in this grade');return;}
+  const win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Report Cards</title><style>body{margin:0;padding:16px;background:#f0f0f0;font-family:sans-serif;}.grid{display:flex;flex-wrap:wrap;gap:16px;}@media print{body{background:#fff;padding:4px;}div{break-inside:avoid;}}</style></head><body><div class="grid">'+gs.map(s=>reportCardHTML(s,grade,sem)).join('')+'</div><script>window.onload=function(){window.print();}<\/script></body></html>');
+  win.document.close();
+}
+
+// ========== ABSENT LIST ==========
+function renderAbsentList(){
+  const date=document.getElementById('absent_date').value||new Date().toISOString().split('T')[0];
+  const att=attendance[date]||{};
+  const absent=students.filter(s=>att[s.id]==='absent');
+  const el=document.getElementById('absentListContent');
+  if(!students.length){el.innerHTML='<div style="color:var(--muted)">No students registered.</div>';return;}
+  let html='<div style="margin-bottom:12px;padding:10px 14px;background:var(--danger-light);border-radius:8px;font-size:13px;color:var(--danger);font-weight:600;">🔴 Absent: '+absent.length+' &nbsp;|&nbsp; ✅ Present: '+(students.length-absent.length)+'</div>';
+  if(!absent.length){html+='<div style="color:var(--success);font-size:13.5px;font-weight:600;">✅ No absences for this date.</div>';}
+  else{
+    html+='<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="padding:8px 10px;text-align:left;background:var(--bg);border-bottom:1.5px solid var(--border);">Student</th><th style="padding:8px 10px;background:var(--bg);border-bottom:1.5px solid var(--border);">Grade</th><th style="padding:8px 10px;background:var(--bg);border-bottom:1.5px solid var(--border);">Guardian Phone</th></tr></thead><tbody>';
+    html+=absent.map((s,i)=>'<tr style="background:'+(i%2===0?'#fff':'var(--bg)')+'"><td style="padding:8px 10px;">'+avatarHtml(s)+' <strong style="margin-left:6px;">'+s.fname+' '+s.sname+'</strong></td><td style="padding:8px 10px;text-align:center;">'+s.grade+'</td><td style="padding:8px 10px;text-align:center;">'+(s.g1_phone||s.phone||'—')+'</td></tr>').join('');
+    html+='</tbody></table>';
+  }
+  el.innerHTML=html;
+}
+
+function printAbsentList(){
+  const date=document.getElementById('absent_date').value||new Date().toISOString().split('T')[0];
+  const att=attendance[date]||{};
+  const absent=students.filter(s=>att[s.id]==='absent');
+  const win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Absent Report</title><style>body{font-family:sans-serif;padding:20px;}h2{color:#0f3070;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}th{background:#e8f0fb;}</style></head><body><h2>'+SCHOOL_NAME+'</h2><h3>Absent Report — '+date+'</h3><p>Total absent: <strong>'+absent.length+'</strong> of <strong>'+students.length+'</strong></p><table><thead><tr><th>#</th><th>Name</th><th>Grade</th><th>Guardian Phone</th></tr></thead><tbody>'+absent.map((s,i)=>'<tr><td>'+(i+1)+'</td><td>'+s.fname+' '+s.sname+'</td><td>'+s.grade+'</td><td>'+(s.g1_phone||s.phone||'—')+'</td></tr>').join('')+'</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>');
+  win.document.close();
+}
+
+// ========== EXPORT CSV ==========
+function downloadCSV(filename,rows){
+  const csv=rows.map(r=>r.map(c=>'"'+(String(c||'').replace(/"/g,'""'))+'"').join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ Downloaded: '+filename);
+}
+
+function exportStudentsCSV(){
+  if(!students.length){toast('⚠️ No students');return;}
+  const h=['ID','First Name','Father Name','Grandfather','Baptism Name','Gender','Grade','DOB','Phone','Guardian 1','G1 Phone','Address','Registered'];
+  const rows=students.map(s=>[s.id,s.fname,s.sname,s.gname,s.bname,s.gender,s.grade,s.dob,s.phone,(s.g1_fname||'')+' '+(s.g1_sname||''),s.g1_phone,(s.area||'')+' '+(s.addr_subcity||''),s.registered]);
+  downloadCSV('students_'+new Date().toISOString().split('T')[0]+'.csv',[h,...rows]);
+}
+
+function exportAttendanceCSV(){
+  const today=new Date().toISOString().split('T')[0];
+  const att=attendance[today]||{};
+  const h=['ID','Name','Grade','Status','Date'];
+  const rows=students.map(s=>[s.id,s.fname+' '+s.sname,s.grade,att[s.id]||'unmarked',today]);
+  downloadCSV('attendance_'+today+'.csv',[h,...rows]);
+}
+
+function exportScoresCSV(){
+  if(!students.length){toast('⚠️ No students');return;}
+  const h=['ID','Name','Grade','Semester',...SUBJECTS_LIST,'Total','Average','Grade Letter'];
+  const rows=[];
+  ['Semester 1','Semester 2'].forEach(sem=>{
+    students.forEach(s=>{
+      const key=s.grade+'__'+sem;
+      const sc=(scores[key]||{})[s.id]||{};
+      const vals=SUBJECTS_LIST.map(sub=>parseFloat(sc[sub]||0));
+      const total=vals.reduce((a,b)=>a+b,0);
+      const avg=(total/SUBJECTS_LIST.length).toFixed(1);
+      const gl=avg>=90?'A':avg>=80?'B':avg>=70?'C':avg>=60?'D':'F';
+      rows.push([s.id,s.fname+' '+s.sname,s.grade,sem,...vals,total,avg,gl]);
+    });
+  });
+  downloadCSV('scores_'+new Date().toISOString().split('T')[0]+'.csv',[h,...rows]);
+}
+
+function showInstallGuide(){
+  const el=document.getElementById('installGuide');
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+</script>
+</body>
+</html>
